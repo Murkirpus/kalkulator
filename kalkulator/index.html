@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover">
+    <title>Калькулятор Pro</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Калькулятор Pro">
+    <meta name="description" content="Многофункциональный калькулятор с поддержкой времени и скорости">
+    
+    <!-- Ссылка на отдельный манифест -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%234f46e5'/%3E%3Ctext x='50' y='65' font-size='50' text-anchor='middle' fill='white' font-family='Arial, sans-serif' font-weight='bold'%3E123%3C/text%3E%3C/svg%3E">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .calculator {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            width: 100%;
+            max-width: 380px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 1.8rem;
+            font-weight: 300;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #a8a8b3;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 5px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #a8a8b3;
+            padding: 10px 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        .display {
+            background: linear-gradient(135deg, #2d2d44 0%, #1a1a2e 100%);
+            border-radius: 15px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            text-align: right;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .display-text {
+            color: #ffffff;
+            font-size: 2.2rem;
+            font-weight: 300;
+            line-height: 1.2;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            min-height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .display-expression {
+            color: #a8a8b3;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+            min-height: 18px;
+            opacity: 0.8;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .time-buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 500;
+            height: 65px;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 6px 18px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn-time {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            height: 45px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            filter: brightness(1.2);
+        }
+
+        .btn.operator {
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            box-shadow: 0 6px 18px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn.clear {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 6px 18px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn.equals {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn.zero {
+            grid-column: span 2;
+        }
+
+        .btn.number {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            box-shadow: 0 6px 18px rgba(107, 114, 128, 0.3);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            animation: slideUp 0.3s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 90%;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .install-prompt button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .install-prompt button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .install-prompt .close-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 4px 8px;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 480px) {
+            .calculator {
+                padding: 18px;
+                margin: 8px;
+            }
+
+            .display-text {
+                font-size: 1.9rem;
+            }
+
+            .btn {
+                height: 55px;
+                font-size: 1.1rem;
+            }
+
+            .btn-time {
+                height: 40px;
+                font-size: 0.8rem;
+            }
+
+            .mode-btn {
+                font-size: 0.75rem;
+                padding: 8px 3px;
+            }
+
+            .install-prompt {
+                font-size: 0.9rem;
+                padding: 10px 18px;
+            }
+
+            .install-prompt button {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="header">
+            <h1>Калькулятор Pro</h1>
+            <p>Обычный • Время • Скорость</p>
+        </div>
+
+        <div class="mode-toggle">
+            <button class="mode-btn active" onclick="switchMode('normal')">Обычный</button>
+            <button class="mode-btn" onclick="switchMode('time')">Время</button>
+            <button class="mode-btn" onclick="switchMode('speed')">Скорость</button>
+        </div>
+
+        <div class="display">
+            <div class="display-expression" id="expression"></div>
+            <div class="display-text" id="result">0</div>
+        </div>
+
+        <div class="time-buttons hidden" id="timeButtons">
+            <button class="btn btn-time" onclick="addTimeUnit('year')">Year</button>
+            <button class="btn btn-time" onclick="addTimeUnit('day')">Day</button>
+            <button class="btn btn-time" onclick="addTimeUnit('hour')">Hour</button>
+            <button class="btn btn-time" onclick="addTimeUnit('min')">Min</button>
+            <button class="btn btn-time" onclick="addTimeUnit('sec')">Sec</button>
+        </div>
+
+        <div class="time-buttons hidden" id="speedButtons" style="grid-template-columns: repeat(4, 1fr);">
+            <button class="btn btn-time" onclick="setSpeedUnit('m/min')">м/мин</button>
+            <button class="btn btn-time" onclick="setSpeedUnit('m/h')">м/ч</button>
+            <button class="btn btn-time" onclick="setSpeedUnit('km/h')">км/ч</button>
+            <button class="btn btn-time" onclick="setSpeedUnit('m/s')">м/с</button>
+            <button class="btn btn-time" onclick="setSpeedUnit('km/min')">км/мин</button>
+            <button class="btn btn-time" onclick="setSpeedUnit('rpm')">об/мин</button>
+            <button class="btn btn-time" onclick="setSpeedUnit('rps')">об/сек</button>
+            <button class="btn btn-time" onclick="setSpeedUnit('rph')">об/час</button>
+        </div>
+
+        <div class="buttons" id="normalButtons">
+            <button class="btn clear" onclick="clearAll()">AC</button>
+            <button class="btn operator" onclick="calculatePercent()">%</button>
+            <button class="btn operator" onclick="appendOperator('/')">÷</button>
+            <button class="btn clear" onclick="deleteLastChar()">⌫</button>
+
+            <button class="btn number" onclick="appendNumber('7')">7</button>
+            <button class="btn number" onclick="appendNumber('8')">8</button>
+            <button class="btn number" onclick="appendNumber('9')">9</button>
+            <button class="btn operator" onclick="appendOperator('*')">×</button>
+
+            <button class="btn number" onclick="appendNumber('4')">4</button>
+            <button class="btn number" onclick="appendNumber('5')">5</button>
+            <button class="btn number" onclick="appendNumber('6')">6</button>
+            <button class="btn operator" onclick="appendOperator('-')">−</button>
+
+            <button class="btn number" onclick="appendNumber('1')">1</button>
+            <button class="btn number" onclick="appendNumber('2')">2</button>
+            <button class="btn number" onclick="appendNumber('3')">3</button>
+            <button class="btn operator" onclick="appendOperator('+')">+</button>
+
+            <button class="btn operator" onclick="appendBracket('(')">(</button>
+            <button class="btn number" onclick="appendNumber('0')">0</button>
+            <button class="btn operator" onclick="appendBracket(')')">)</button>
+            <button class="btn number" onclick="appendNumber('.')">.</button>
+
+            <button class="btn number" onclick="appendNumber('00')">00</button>
+            <button class="btn equals" onclick="calculate()" style="grid-column: span 3;">=</button>
+        </div>
+
+        <div class="buttons hidden" id="timeCalculatorButtons">
+            <button class="btn clear" onclick="clearAll()">AC</button>
+            <button class="btn clear" onclick="clearEntry()">C</button>
+            <button class="btn operator" onclick="appendOperator('+')">+</button>
+            <button class="btn operator" onclick="appendOperator('-')">−</button>
+
+            <button class="btn number" onclick="appendNumber('7')">7</button>
+            <button class="btn number" onclick="appendNumber('8')">8</button>
+            <button class="btn number" onclick="appendNumber('9')">9</button>
+            <button class="btn operator" onclick="showCurrentTime()">Now</button>
+
+            <button class="btn number" onclick="appendNumber('4')">4</button>
+            <button class="btn number" onclick="appendNumber('5')">5</button>
+            <button class="btn number" onclick="appendNumber('6')">6</button>
+            <button class="btn operator" onclick="convertTime()">Full</button>
+
+            <button class="btn number" onclick="appendNumber('1')">1</button>
+            <button class="btn number" onclick="appendNumber('2')">2</button>
+            <button class="btn number" onclick="appendNumber('3')">3</button>
+            <button class="btn number" onclick="appendNumber('.')">.</button>
+
+            <button class="btn number zero" onclick="appendNumber('0')">0</button>
+            <button class="btn number" onclick="appendNumber('00')">00</button>
+            <button class="btn equals" onclick="calculateTime()">=</button>
+        </div>
+
+        <div class="buttons hidden" id="speedCalculatorButtons">
+            <button class="btn clear" onclick="clearAll()">AC</button>
+            <button class="btn clear" onclick="clearEntry()">C</button>
+            <button class="btn operator" onclick="convertSpeed()">↔</button>
+            <button class="btn operator" onclick="showAllSpeeds()">All</button>
+
+            <button class="btn number" onclick="appendNumber('7')">7</button>
+            <button class="btn number" onclick="appendNumber('8')">8</button>
+            <button class="btn number" onclick="appendNumber('9')">9</button>
+            <button class="btn number" onclick="appendNumber('.')">.</button>
+
+            <button class="btn number" onclick="appendNumber('4')">4</button>
+            <button class="btn number" onclick="appendNumber('5')">5</button>
+            <button class="btn number" onclick="appendNumber('6')">6</button>
+            <button class="btn number" onclick="appendNumber('00')">00</button>
+
+            <button class="btn number" onclick="appendNumber('1')">1</button>
+            <button class="btn number" onclick="appendNumber('2')">2</button>
+            <button class="btn number" onclick="appendNumber('3')">3</button>
+            <button class="btn number" onclick="appendNumber('0')">0</button>
+        </div>
+    </div>
+
+    <div id="installPrompt" class="install-prompt hidden">
+        <span>📱 Установить приложение?</span>
+        <button id="installBtn">Установить</button>
+        <button class="close-btn" id="closeInstall">✕</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
